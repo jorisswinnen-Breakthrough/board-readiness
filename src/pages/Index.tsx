@@ -5,17 +5,19 @@ import { calculateResults, type ResponseValue, type AssessmentResult } from "@/d
 
 const Index = () => {
   const [result, setResult] = useState<AssessmentResult | null>(null);
+  const [lastAnswers, setLastAnswers] = useState<Record<string, ResponseValue>>({});
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const handleCalculate = (answers: Record<string, ResponseValue>) => {
     const res = calculateResults(answers);
     setResult(res);
+    setLastAnswers(answers);
     setTimeout(() => {
       resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
   };
 
-  const handleReset = () => setResult(null);
+  const handleReset = () => { setResult(null); setLastAnswers({}); };
 
   return (
     <div className="min-h-screen bg-background">
@@ -49,7 +51,7 @@ const Index = () => {
         {/* Results */}
         {result && (
           <div ref={resultsRef}>
-            <ResultsSection result={result} />
+            <ResultsSection result={result} answers={lastAnswers} />
           </div>
         )}
       </main>
