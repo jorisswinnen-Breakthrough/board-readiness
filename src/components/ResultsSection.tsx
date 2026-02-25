@@ -1,11 +1,16 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import type { AssessmentResult } from "@/data/assessmentData";
-import { maturityLevels, getRecommendations, generateTextExport } from "@/data/assessmentData";
+import { maturityLevels, generateTextExport } from "@/data/assessmentData";
+import { getKeywordRecommendations, generateKeywordExportText } from "@/data/keywordRecommendations";
+import type { KeywordRecommendation } from "@/data/keywordRecommendations";
 import MaturityRadarChart from "./MaturityRadarChart";
+import KeywordDetail from "./KeywordDetail";
 import { cn } from "@/lib/utils";
 
 interface ResultsSectionProps {
   result: AssessmentResult;
+  answers: Record<string, number>;
 }
 
 const levelColors: Record<number, string> = {
@@ -16,9 +21,19 @@ const levelColors: Record<number, string> = {
   5: "bg-level-5",
 };
 
-const ResultsSection = ({ result }: ResultsSectionProps) => {
+const ResultsSection = ({ result, answers }: ResultsSectionProps) => {
+  const [openKeywords, setOpenKeywords] = useState<Set<string>>(new Set());
   const lvl = maturityLevels.find((l) => l.level === result.overallLevel);
-  const recommendations = getRecommendations(result);
+  const keywordRecs = getKeywordRecommendations(result, answers);
+
+  const toggleKeyword = (keyword: string) => {
+    setOpenKeywords((prev) => {
+      const next = new Set(prev);
+      if (next.has(keyword)) next.delete(keyword);
+      else next.add(keyword);
+      return next;
+    });
+  };
 
   const sorted = result.dims
     .filter((d) => d.max > 0)
@@ -27,7 +42,7 @@ const ResultsSection = ({ result }: ResultsSectionProps) => {
   const priorities = sorted.slice(0, 2);
 
   const handleExport = () => {
-    const text = generateTextExport(result, recommendations);
+    const text = generateTextExport(result, []) + generateKeywordExportText(keywordRecs);
     const blob = new Blob([text], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -46,6 +61,9 @@ const ResultsSection = ({ result }: ResultsSectionProps) => {
       </div>
     );
   }
+
+  const highPriority = keywordRecs.filter((r) => r.priority === "high");
+  const mediumPriority = keywordRecs.filter((r) => r.priority === "medium");
 
   return (
     <motion.div
@@ -135,26 +153,66 @@ const ResultsSection = ({ result }: ResultsSectionProps) => {
         </div>
       )}
 
-      {/* Recommendations */}
+      {/* Keyword-Based Recommendations */}
       <div className="bg-card rounded-lg border border-border p-6 shadow-sm">
-        <h3 className="font-display text-lg font-semibold text-foreground mb-3">
+        <h3 className="font-display text-lg font-semibold text-foreground mb-2">
           💡 AI-Powered Recommendations
         </h3>
-        {recommendations.length > 0 ? (
-          <ul className="space-y-2">
-            {recommendations.map((rec, i) => (
-              <motion.li
-                key={i}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.08 }}
-                className="flex gap-2 text-sm text-foreground"
-              >
-                <span className="text-accent mt-0.5 shrink-0">▸</span>
-                <span>{rec}</span>
-              </motion.li>
-            ))}
-          </ul>
+        <p className="text-xs text-muted-foreground mb-4">
+          Click a keyword to reveal actionable measures and examples for advancing your maturity.
+        </p>
+
+        {keywordRecs.length > 0 ? (
+          <div className="space-y-5">
+            {/* High priority */}
+            {highPriority.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-destructive mb-2 uppercase tracking-wide">
+                  High Priority — Current Gaps
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {highPriority.map((rec) => (
+                    <KeywordChip
+                      key={rec.keyword}
+                      rec={rec}
+                      isOpen={openKeywords.has(rec.keyword)}
+                      onToggle={() => toggleKeyword(rec.keyword)}
+                    />
+                  ))}
+                </div>
+                {/* Detail panels for open high-priority keywords */}
+                {highPriority
+                  .filter((r) => openKeywords.has(r.keyword))
+                  .map((rec) => (
+                    <KeywordDetail key={rec.keyword} recommendation={rec} isOpen />
+                  ))}
+              </div>
+            )}
+
+            {/* Medium priority */}
+            {mediumPriority.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-accent-foreground mb-2 uppercase tracking-wide">
+                  Medium Priority — In Progress
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {mediumPriority.map((rec) => (
+                    <KeywordChip
+                      key={rec.keyword}
+                      rec={rec}
+                      isOpen={openKeywords.has(rec.keyword)}
+                      onToggle={() => toggleKeyword(rec.keyword)}
+                    />
+                  ))}
+                </div>
+                {mediumPriority
+                  .filter((r) => openKeywords.has(r.keyword))
+                  .map((rec) => (
+                    <KeywordDetail key={rec.keyword} recommendation={rec} isOpen />
+                  ))}
+              </div>
+            )}
+          </div>
         ) : (
           <p className="text-sm text-muted-foreground">
             Complete the assessment to receive tailored recommendations.
@@ -174,5 +232,35 @@ const ResultsSection = ({ result }: ResultsSectionProps) => {
     </motion.div>
   );
 };
+
+/* Keyword chip sub-component */
+function KeywordChip({
+  rec,
+  isOpen,
+  onToggle,
+}: {
+  rec: KeywordRecommendation;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      onClick={onToggle}
+      className={cn(
+        "px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-all border",
+        "hover:scale-105 active:scale-95",
+        rec.priority === "high"
+          ? isOpen
+            ? "bg-destructive text-destructive-foreground border-destructive"
+            : "bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/25"
+          : isOpen
+            ? "bg-accent text-accent-foreground border-accent"
+            : "bg-accent/15 text-accent-foreground border-accent/30 hover:bg-accent/25"
+      )}
+    >
+      {rec.keyword}
+    </button>
+  );
+}
 
 export default ResultsSection;
