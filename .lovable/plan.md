@@ -1,77 +1,49 @@
 
 
-## Keyword-Based Recommendation Engine
+## HTML Report Export with Branded Header & Footer
 
-Replace the current static bullet-list recommendations with an interactive keyword/tag-based system. Users see clickable keyword chips derived from their assessment gaps. Clicking a keyword expands to show detailed, actionable measures with concrete examples for moving up the maturity model.
+### Changes
 
----
+**1. Copy logo to project**
+- Copy `user-uploads://Joris_1.png` to `src/assets/joris-logo.png`
 
-### How It Works (User Experience)
+**2. Create HTML report generator: `src/utils/generateHtmlReport.ts`**
+- Build a function that generates a self-contained HTML string with inline CSS
+- **Header**: Logo (embedded as base64 via import) + spaced title "BOARD MEMBER MATURITY" in navy
+- **Body**: Overall maturity level, dimension score table, keyword recommendations (high/medium priority with actions and examples)
+- **Footer**: Logo (base64) + bold spaced contact info: `Joris@deltabase.be` / `+32494257825`
+- The logo will be converted to base64 at build time using a small utility or imported as a data URL
+- Professional styling with the navy/gold color scheme matching the app
 
-1. After completing the assessment, the "AI-Powered Recommendations" section shows **clickable keyword badges** (e.g., "Fiduciary Duties", "Financial Literacy", "Risk Oversight", "Board CV", "DEI Leadership").
-2. Keywords are **color-coded by priority**: red for "Not Yet" gaps, amber for "In Progress" areas.
-3. Clicking a keyword **expands an actionable detail panel** below it with:
-   - Current status indicator (gap level)
-   - 2-3 specific actions to move up the maturity ladder
-   - Concrete examples (e.g., "Enrol in the IoD Certificate in Company Direction", "Shadow a board audit committee for one cycle")
-   - Target maturity level after completing the actions
-4. Multiple keywords can be open at once. Clicking again collapses the panel.
+**3. Update `ResultsSection.tsx`**
+- Replace `handleExport` to generate HTML instead of plain text
+- Change blob type to `text/html` and filename to `board_readiness_assessment.html`
+- Rename button from "Export Results" to "Download Report"
+- Remove the emoji from the button, use a clean download icon or text
 
----
+**4. Base64 logo approach**
+- Import the PNG in the report generator module
+- At build time, Vite handles image imports; for embedding in HTML we'll convert the image to a base64 data URI string using a canvas-based helper or a small inline base64 constant generated from the uploaded file
 
-### Technical Plan
-
-**1. New data structure in `src/data/assessmentData.ts`**
-
-Add a `KeywordRecommendation` interface and a `getKeywordRecommendations()` function that returns keyword objects instead of flat strings:
+### Report Structure
 
 ```text
-KeywordRecommendation {
-  keyword: string           // e.g. "Fiduciary Duties"
-  dimension: string         // dimension id
-  priority: "high" | "medium"  // based on Not Yet vs In Progress
-  currentLevel: number
-  targetLevel: number
-  actions: Array<{
-    action: string
-    example: string
-  }>
-}
++------------------------------------------+
+|  [Logo]   BOARD MEMBER MATURITY          |  <- Header
++------------------------------------------+
+|  Overall Maturity: Level X - Name        |
+|  Score: XX/YY (ZZ.Z%)                   |
+|  Description tag                         |
++------------------------------------------+
+|  Dimension Scores Table                  |
++------------------------------------------+
+|  High Priority Recommendations           |
+|    [Keyword] actions + examples          |
+|  Medium Priority Recommendations         |
+|    [Keyword] actions + examples          |
++------------------------------------------+
+|  [Logo]                                  |  <- Footer
+|  Joris@deltabase.be / +32494257825      |
++------------------------------------------+
 ```
-
-Each dimension gets 2-5 keywords mapped to specific questions. The function checks response values to determine which keywords surface and at what priority.
-
-**2. Replace recommendations UI in `src/components/ResultsSection.tsx`**
-
-Remove the current bullet list. Replace with:
-- A grid/flex layout of keyword badges (styled chips)
-- High priority (Not Yet) chips in red/coral, medium (In Progress) in amber/gold
-- Each chip is clickable and toggles an expandable detail card using framer-motion for animation
-
-**3. New component: `src/components/KeywordDetail.tsx`**
-
-A small expandable card component that renders when a keyword is selected:
-- Shows the keyword title, dimension context, and priority level
-- Lists 2-3 actionable steps with examples in a structured format
-- Shows "Current Level X -> Target Level Y" progression indicator
-- Smooth expand/collapse animation with framer-motion
-
-**4. Update `generateTextExport` in `assessmentData.ts`**
-
-Update the export function to include keyword-based recommendations with their actions and examples in the text output.
-
----
-
-### Keyword Mapping (Sample)
-
-| Dimension | Keywords |
-|-----------|----------|
-| Governance | Fiduciary Duties, Governance Codes, Legal Compliance |
-| Strategic/Financial | Strategic Foresight, Financial Literacy, Risk Oversight, Capital Allocation |
-| Industry | Executive Leadership, Sector Knowledge, Change Management, Board Experience |
-| Character | Ethical Standards, Communication, Constructive Challenge, DEI Leadership, Resilience |
-| Time | Time Commitment, Committee Readiness, Conflict Management |
-| Operational | Board CV, LinkedIn Presence, Value Proposition, Governance Training, Board Search |
-
-Each keyword gets tailored actions with real-world examples based on whether the response was "Not Yet" (high priority) or "In Progress" (medium priority). "Confident" responses don't generate keywords.
 
