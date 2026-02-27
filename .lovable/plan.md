@@ -1,43 +1,77 @@
 
 
-## Align Styling with Board Navigator Project
+## Landing Page with Google Login + Assessment Page Restructure
 
-Update this project's color palette, typography, and design tokens to match the [Board Navigator](/projects/2913174c-aa11-4b6b-9273-a4218fa3e0dd) project's steel blue and teal theme with DM Sans/DM Serif Display fonts.
+### Prerequisites
 
-### What Changes
+Before implementing, you need to **connect Supabase** to this project:
 
-**Visual differences:**
-- **Fonts**: Playfair Display + Inter replaced with **DM Serif Display** (headings) + **DM Sans** (body)
-- **Primary color**: Navy (`232 55% 25%`) replaced with steel blue (`213 62% 39%`)
-- **Accent/gold color**: Gold (`43 52% 54%`) replaced with teal (`173 97% 27%`)
-- **Foreground**: Adjusted to match Navigator's blue-tinted text
-- **Border/muted tones**: Shifted from warm gray to cool blue-gray
-- **Border radius**: `0.5rem` changed to `0.625rem`
-- **Custom tokens**: gold, navy, gradient definitions all updated to teal/blue scheme
-- **Dark mode**: Updated to match Navigator's dark palette
+1. Go to **Project Settings** (gear icon) in the Lovable editor
+2. Find the **Supabase** tab under Integrations
+3. Click **Connect Supabase** and follow the prompts to link a Supabase project
+4. Once connected, enable **Google** as an auth provider in your Supabase dashboard under **Authentication > Providers** (you'll need Google Cloud OAuth credentials -- Client ID and Secret)
 
-### Files to Edit
+Once Supabase is connected, we can proceed with the implementation below.
 
-**1. `src/index.css`**
-- Replace Google Fonts import (DM Sans + DM Serif Display instead of Playfair Display + Inter)
-- Update all CSS custom properties (light and dark) to match Board Navigator's values
-- Update utility classes (font-display, font-body) to use new font families
-- Add gradient and shadow custom properties from Navigator
-- Remove `text-gradient-gold` utility or update it to use teal
+---
 
-**2. `tailwind.config.ts`**
-- Update `fontFamily` to DM Serif Display + DM Sans
-- Add `gold.muted`, `slate`, and `cream` color tokens from Navigator
-- Remove `level` colors (keep them -- they're used in the assessment) or retain as-is since Navigator doesn't define them
-- Add `fade-in` keyframe and animation from Navigator
+### Overview
 
-**3. `src/utils/generateHtmlReport.ts`**
-- Update inline CSS colors in the HTML report to match the new palette:
-  - Header/footer background: steel blue (`#1e5a96` area) instead of navy (`#1a2456`)
-  - Accent/highlight color: teal (`#008b6e`) instead of gold (`#b8963e`)
-  - Font family: DM Sans instead of Segoe UI
+Split the app into two pages:
 
-### What Stays the Same
-- All component logic, structure, and layout unchanged
-- Level colors (1-5) retained for maturity indicators since they serve a distinct functional purpose
-- All Radix UI components and their styling tokens remain compatible
+1. **Landing Page** (`/`) -- Title "Board Readiness" with Google Sign-In button and branded footer
+2. **Assessment Page** (`/assessment`) -- Protected route with header (logo + title) + info banner + the existing assessment form + branded footer
+
+---
+
+### Technical Plan
+
+**1. Install Supabase client**
+- Add `@supabase/supabase-js` dependency
+- Create `src/integrations/supabase/client.ts` with Supabase config
+
+**2. Create Landing Page: `src/pages/Landing.tsx`**
+- Clean, centered layout with:
+  - Logo (joris-logo.png) at top
+  - Title "Board Readiness" in DM Serif Display
+  - "Sign in with Google" button that calls `supabase.auth.signInWithOAuth({ provider: 'google' })`
+- White footer with Joris logo + bold spaced contact info
+
+**3. Create Auth context: `src/contexts/AuthContext.tsx`**
+- Wrap app with auth provider
+- `onAuthStateChange` listener to track session
+- Provide `user`, `loading`, `signOut` values
+
+**4. Create Assessment Page: `src/pages/Assessment.tsx`**
+- Move existing Index page content here
+- Add header bar with logo + page title
+- Add teal info banner below header with the description text about the six dimensions and maturity model
+- White footer with Joris logo + contact info
+- Protected: redirects to `/` if not authenticated
+
+**5. Create shared Footer component: `src/components/Footer.tsx`**
+- White background
+- Joris logo centered
+- Bold, spaced contact info: **Joris@deltabase.be** / **+32494257825**
+- Reused on both pages
+
+**6. Update routing: `src/App.tsx`**
+- `/` renders Landing page
+- `/assessment` renders Assessment page (protected)
+- Wrap with AuthProvider
+
+**7. Update `src/pages/Index.tsx`**
+- Redirect to Landing or remove, replaced by Landing.tsx
+
+### Files to Create/Edit
+
+| Action | File |
+|--------|------|
+| Create | `src/integrations/supabase/client.ts` |
+| Create | `src/pages/Landing.tsx` |
+| Create | `src/pages/Assessment.tsx` |
+| Create | `src/components/Footer.tsx` |
+| Create | `src/contexts/AuthContext.tsx` |
+| Edit   | `src/App.tsx` (routing + auth provider) |
+| Edit   | `src/pages/Index.tsx` (remove or redirect) |
+
