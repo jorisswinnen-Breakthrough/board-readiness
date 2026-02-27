@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/contexts/AuthContext";
 import Footer from "@/components/Footer";
 import jorisLogo from "@/assets/joris-logo.png";
@@ -14,9 +14,8 @@ const Landing = () => {
   }, [user, loading, navigate]);
 
   const handleGoogleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/assessment` },
+    await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
     });
   };
 
