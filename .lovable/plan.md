@@ -1,77 +1,46 @@
 
 
-## Landing Page with Google Login + Assessment Page Restructure
+## Enable Google OAuth for Sign-In
 
-### Prerequisites
+### Current Problem
+The auth logs show **"provider is not enabled"** when trying to sign in with Google. The current code uses `supabase.auth.signInWithOAuth()` directly, but Lovable Cloud requires using the managed `lovable.auth.signInWithOAuth()` approach.
 
-Before implementing, you need to **connect Supabase** to this project:
+### What Needs to Happen
 
-1. Go to **Project Settings** (gear icon) in the Lovable editor
-2. Find the **Supabase** tab under Integrations
-3. Click **Connect Supabase** and follow the prompts to link a Supabase project
-4. Once connected, enable **Google** as an auth provider in your Supabase dashboard under **Authentication > Providers** (you'll need Google Cloud OAuth credentials -- Client ID and Secret)
+**Step 1: Configure Social Login (tool call)**
+Use the Configure Social Login tool to enable Google OAuth in Lovable Cloud. This will:
+- Enable the Google provider in the backend
+- Auto-generate `src/integrations/lovable/` module with the `@lovable.dev/cloud-auth-js` package
 
-Once Supabase is connected, we can proceed with the implementation below.
+**Step 2: Update Landing.tsx**
+Replace the direct Supabase auth call with the Lovable managed auth:
 
----
+```typescript
+// Before:
+import { supabase } from "@/integrations/supabase/client";
+await supabase.auth.signInWithOAuth({
+  provider: "google",
+  options: { redirectTo: `${window.location.origin}/assessment` },
+});
 
-### Overview
+// After:
+import { lovable } from "@/integrations/lovable/index";
+await lovable.auth.signInWithOAuth("google", {
+  redirect_uri: window.location.origin,
+});
+```
 
-Split the app into two pages:
+The redirect after login is already handled by the `useEffect` in `Landing.tsx` which navigates to `/assessment` when a user session is detected.
 
-1. **Landing Page** (`/`) -- Title "Board Readiness" with Google Sign-In button and branded footer
-2. **Assessment Page** (`/assessment`) -- Protected route with header (logo + title) + info banner + the existing assessment form + branded footer
-
----
-
-### Technical Plan
-
-**1. Install Supabase client**
-- Add `@supabase/supabase-js` dependency
-- Create `src/integrations/supabase/client.ts` with Supabase config
-
-**2. Create Landing Page: `src/pages/Landing.tsx`**
-- Clean, centered layout with:
-  - Logo (joris-logo.png) at top
-  - Title "Board Readiness" in DM Serif Display
-  - "Sign in with Google" button that calls `supabase.auth.signInWithOAuth({ provider: 'google' })`
-- White footer with Joris logo + bold spaced contact info
-
-**3. Create Auth context: `src/contexts/AuthContext.tsx`**
-- Wrap app with auth provider
-- `onAuthStateChange` listener to track session
-- Provide `user`, `loading`, `signOut` values
-
-**4. Create Assessment Page: `src/pages/Assessment.tsx`**
-- Move existing Index page content here
-- Add header bar with logo + page title
-- Add teal info banner below header with the description text about the six dimensions and maturity model
-- White footer with Joris logo + contact info
-- Protected: redirects to `/` if not authenticated
-
-**5. Create shared Footer component: `src/components/Footer.tsx`**
-- White background
-- Joris logo centered
-- Bold, spaced contact info: **Joris@deltabase.be** / **+32494257825**
-- Reused on both pages
-
-**6. Update routing: `src/App.tsx`**
-- `/` renders Landing page
-- `/assessment` renders Assessment page (protected)
-- Wrap with AuthProvider
-
-**7. Update `src/pages/Index.tsx`**
-- Redirect to Landing or remove, replaced by Landing.tsx
-
-### Files to Create/Edit
+### Files to Edit
 
 | Action | File |
 |--------|------|
-| Create | `src/integrations/supabase/client.ts` |
-| Create | `src/pages/Landing.tsx` |
-| Create | `src/pages/Assessment.tsx` |
-| Create | `src/components/Footer.tsx` |
-| Create | `src/contexts/AuthContext.tsx` |
-| Edit   | `src/App.tsx` (routing + auth provider) |
-| Edit   | `src/pages/Index.tsx` (remove or redirect) |
+| Auto-generated | `src/integrations/lovable/` (by configure tool) |
+| Edit | `src/pages/Landing.tsx` (switch to lovable auth) |
+
+### What Stays the Same
+- `AuthContext.tsx` -- still uses `supabase.auth.onAuthStateChange` which works with both approaches
+- `Assessment.tsx` -- no changes needed
+- `Footer.tsx` -- no changes needed
 
