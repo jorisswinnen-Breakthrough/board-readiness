@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import type { AssessmentResult } from "@/data/assessmentData";
-import { maturityLevels, generateTextExport } from "@/data/assessmentData";
-import { getKeywordRecommendations, generateKeywordExportText } from "@/data/keywordRecommendations";
+import { maturityLevels } from "@/data/assessmentData";
+import { getKeywordRecommendations } from "@/data/keywordRecommendations";
 import type { KeywordRecommendation } from "@/data/keywordRecommendations";
+import { generateHtmlReport } from "@/utils/generateHtmlReport";
 import MaturityRadarChart from "./MaturityRadarChart";
 import KeywordDetail from "./KeywordDetail";
 import { cn } from "@/lib/utils";
@@ -41,13 +42,13 @@ const ResultsSection = ({ result, answers }: ResultsSectionProps) => {
     .sort((a, b) => a.pct - b.pct);
   const priorities = sorted.slice(0, 2);
 
-  const handleExport = () => {
-    const text = generateTextExport(result, []) + generateKeywordExportText(keywordRecs);
-    const blob = new Blob([text], { type: "text/plain" });
+  const handleExport = async () => {
+    const html = await generateHtmlReport(result, keywordRecs);
+    const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "board_readiness_assessment.txt";
+    a.download = "board_readiness_assessment.html";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -226,7 +227,7 @@ const ResultsSection = ({ result, answers }: ResultsSectionProps) => {
           onClick={handleExport}
           className="bg-accent text-accent-foreground px-5 py-2 rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity shadow-sm"
         >
-          📥 Export Results
+          Download Report
         </button>
       </div>
     </motion.div>
