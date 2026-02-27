@@ -5,7 +5,6 @@ import AssessmentForm from "@/components/AssessmentForm";
 import ResultsSection from "@/components/ResultsSection";
 import Footer from "@/components/Footer";
 import { calculateResults, type ResponseValue, type AssessmentResult } from "@/data/assessmentData";
-import jorisLogo from "@/assets/joris-logo.png";
 import { LogOut } from "lucide-react";
 
 const Assessment = () => {
@@ -47,7 +46,6 @@ const Assessment = () => {
       <header className="bg-primary text-primary-foreground py-4 px-4 shadow-lg">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src={jorisLogo} alt="Joris Swinnen" className="h-8 brightness-0 invert" />
             <h1 className="font-display text-xl md:text-2xl font-bold">
               Board Readiness &amp; Governance Maturity
               <span className="text-gradient-teal"> Self‑Assessment</span>

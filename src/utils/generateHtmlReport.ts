@@ -1,23 +1,74 @@
 import type { AssessmentResult } from "@/data/assessmentData";
 import { maturityLevels } from "@/data/assessmentData";
 import type { KeywordRecommendation } from "@/data/keywordRecommendations";
-import jorisLogoUrl from "@/assets/joris-logo.png";
 
-async function imageToBase64(url: string): Promise<string> {
-  const res = await fetch(url);
-  const blob = await res.blob();
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.readAsDataURL(blob);
-  });
+function generateRadarSvg(dims: AssessmentResult["dims"]): string {
+  const scored = dims.filter((d) => d.max > 0);
+  if (scored.length < 3) return "";
+  const size = 400;
+  const cx = size / 2;
+  const cy = size / 2;
+  const R = 150;
+  const n = scored.length;
+  const angleStep = (2 * Math.PI) / n;
+  const startAngle = -Math.PI / 2;
+
+  const point = (i: number, r: number) => {
+    const angle = startAngle + i * angleStep;
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
+  };
+
+  // concentric rings
+  const rings = [0.2, 0.4, 0.6, 0.8, 1.0];
+  const gridLines = rings
+    .map((pct) => {
+      const pts = Array.from({ length: n }, (_, i) => point(i, R * pct).join(",")).join(" ");
+      return `<polygon points="${pts}" fill="none" stroke="#d4e2ed" stroke-width="1"/>`;
+    })
+    .join("");
+
+  // axis lines
+  const axes = Array.from({ length: n }, (_, i) => {
+    const [x, y] = point(i, R);
+    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#d4e2ed" stroke-width="1"/>`;
+  }).join("");
+
+  // labels
+  const labels = scored
+    .map((d, i) => {
+      const [x, y] = point(i, R + 24);
+      const anchor = x < cx - 10 ? "end" : x > cx + 10 ? "start" : "middle";
+      const name = d.label.length > 22 ? d.label.slice(0, 20) + "…" : d.label;
+      return `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="central" font-size="11" fill="#444">${name}</text>`;
+    })
+    .join("");
+
+  // data polygon
+  const dataPoints = scored
+    .map((d, i) => point(i, R * (d.pct / 100)).join(","))
+    .join(" ");
+
+  const dataPoly = `<polygon points="${dataPoints}" fill="rgba(30,90,150,0.22)" stroke="#1e5a96" stroke-width="2"/>`;
+
+  // dots
+  const dots = scored
+    .map((d, i) => {
+      const [x, y] = point(i, R * (d.pct / 100));
+      return `<circle cx="${x}" cy="${y}" r="4" fill="#1e5a96"/>`;
+    })
+    .join("");
+
+  return `<div style="text-align:center;margin:20px 0;">
+    <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;">
+      ${gridLines}${axes}${dataPoly}${dots}${labels}
+    </svg>
+  </div>`;
 }
 
 export async function generateHtmlReport(
   result: AssessmentResult,
   keywordRecs: KeywordRecommendation[]
 ): Promise<string> {
-  const logoBase64 = await imageToBase64(jorisLogoUrl);
   const lvl = maturityLevels.find((l) => l.level === result.overallLevel);
 
   const levelColor = (level: number) => {
@@ -79,7 +130,6 @@ export async function generateHtmlReport(
 <body>
 
 <div class="header">
-  <img src="${logoBase64}" alt="Logo" />
   <h1>Board Member Maturity</h1>
 </div>
 
@@ -112,13 +162,15 @@ export async function generateHtmlReport(
     </tbody>
   </table>
 
+  <div class="section-title">Dimension Overview</div>
+  ${generateRadarSvg(result.dims)}
+
   ${highPriority.length > 0 ? `<div class="section-title" style="color:#cc3333;border-color:#cc3333;">High Priority — Current Gaps</div>${renderRecs(highPriority)}` : ""}
 
   ${mediumPriority.length > 0 ? `<div class="section-title" style="color:#008b6e;">Medium Priority — In Progress</div>${renderRecs(mediumPriority)}` : ""}
 </div>
 
 <div class="footer">
-  <img src="${logoBase64}" alt="Logo" /><br/>
   <p><a href="mailto:Joris@deltabase.be">Joris@deltabase.be</a> &nbsp;/&nbsp; +32 494 25 78 25</p>
 </div>
 
