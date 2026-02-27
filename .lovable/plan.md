@@ -1,46 +1,28 @@
 
 
-## Enable Google OAuth for Sign-In
+## Changes
 
-### Current Problem
-The auth logs show **"provider is not enabled"** when trying to sign in with Google. The current code uses `supabase.auth.signInWithOAuth()` directly, but Lovable Cloud requires using the managed `lovable.auth.signInWithOAuth()` approach.
+### 1. Landing Page -- Remove logo, white background
+**File:** `src/pages/Landing.tsx`
+- Remove the `<img>` tag showing the Joris logo
+- The page already uses `bg-background` which is white, so no background change needed
 
-### What Needs to Happen
+### 2. Assessment Header -- Remove logo
+**File:** `src/pages/Assessment.tsx`
+- Remove the `<img>` tag from the header (keep the title text and sign-out button)
 
-**Step 1: Configure Social Login (tool call)**
-Use the Configure Social Login tool to enable Google OAuth in Lovable Cloud. This will:
-- Enable the Google provider in the backend
-- Auto-generate `src/integrations/lovable/` module with the `@lovable.dev/cloud-auth-js` package
+### 3. Add SVG Spider Chart to Downloadable Report
+**File:** `src/utils/generateHtmlReport.ts`
 
-**Step 2: Update Landing.tsx**
-Replace the direct Supabase auth call with the Lovable managed auth:
+The current HTML report has no chart. We'll generate an inline SVG radar/spider chart using the dimension data, placed between the scores table and the recommendations section.
 
-```typescript
-// Before:
-import { supabase } from "@/integrations/supabase/client";
-await supabase.auth.signInWithOAuth({
-  provider: "google",
-  options: { redirectTo: `${window.location.origin}/assessment` },
-});
+The SVG will be built with pure math (no library needed since it's a static HTML file):
+- A hexagonal polar grid with concentric rings at 20%, 40%, 60%, 80%, 100%
+- Axis labels for each dimension name
+- A filled polygon representing the dimension scores
+- Styled to match the report's blue/teal color scheme
 
-// After:
-import { lovable } from "@/integrations/lovable/index";
-await lovable.auth.signInWithOAuth("google", {
-  redirect_uri: window.location.origin,
-});
-```
-
-The redirect after login is already handled by the `useEffect` in `Landing.tsx` which navigates to `/assessment` when a user session is detected.
-
-### Files to Edit
-
-| Action | File |
-|--------|------|
-| Auto-generated | `src/integrations/lovable/` (by configure tool) |
-| Edit | `src/pages/Landing.tsx` (switch to lovable auth) |
-
-### What Stays the Same
-- `AuthContext.tsx` -- still uses `supabase.auth.onAuthStateChange` which works with both approaches
-- `Assessment.tsx` -- no changes needed
-- `Footer.tsx` -- no changes needed
+**Technical approach:**
+- Add a helper function `generateRadarSvg(dims)` that computes polygon points for N dimensions on a circle and returns an SVG string
+- Insert the SVG into the HTML report template after the dimension table
 
