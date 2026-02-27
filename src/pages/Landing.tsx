@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/contexts/AuthContext";
 import Footer from "@/components/Footer";
-import jorisLogo from "@/assets/joris-logo.png";
 
 const Landing = () => {
   const { user, loading } = useAuth();
@@ -30,7 +29,6 @@ const Landing = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <main className="flex-1 flex flex-col items-center justify-center px-4 gap-8">
-        <img src={jorisLogo} alt="Joris Swinnen" className="h-16" />
         <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground text-center">
           Board Readiness
         </h1>
