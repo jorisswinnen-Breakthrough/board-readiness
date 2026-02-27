@@ -32,6 +32,9 @@ const Landing = () => {
         <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground text-center">
           Board Readiness
         </h1>
+        <p className="text-muted-foreground text-lg text-center max-w-md">
+          Sign in to assess your personal governance maturity.
+        </p>
         <button
           onClick={handleGoogleLogin}
           className="flex items-center gap-3 bg-card border border-border rounded-lg px-6 py-3 shadow-sm hover:shadow-md transition-shadow text-sm font-medium text-foreground"
