@@ -1,49 +1,43 @@
 
 
-## HTML Report Export with Branded Header & Footer
+## Align Styling with Board Navigator Project
 
-### Changes
+Update this project's color palette, typography, and design tokens to match the [Board Navigator](/projects/2913174c-aa11-4b6b-9273-a4218fa3e0dd) project's steel blue and teal theme with DM Sans/DM Serif Display fonts.
 
-**1. Copy logo to project**
-- Copy `user-uploads://Joris_1.png` to `src/assets/joris-logo.png`
+### What Changes
 
-**2. Create HTML report generator: `src/utils/generateHtmlReport.ts`**
-- Build a function that generates a self-contained HTML string with inline CSS
-- **Header**: Logo (embedded as base64 via import) + spaced title "BOARD MEMBER MATURITY" in navy
-- **Body**: Overall maturity level, dimension score table, keyword recommendations (high/medium priority with actions and examples)
-- **Footer**: Logo (base64) + bold spaced contact info: `Joris@deltabase.be` / `+32494257825`
-- The logo will be converted to base64 at build time using a small utility or imported as a data URL
-- Professional styling with the navy/gold color scheme matching the app
+**Visual differences:**
+- **Fonts**: Playfair Display + Inter replaced with **DM Serif Display** (headings) + **DM Sans** (body)
+- **Primary color**: Navy (`232 55% 25%`) replaced with steel blue (`213 62% 39%`)
+- **Accent/gold color**: Gold (`43 52% 54%`) replaced with teal (`173 97% 27%`)
+- **Foreground**: Adjusted to match Navigator's blue-tinted text
+- **Border/muted tones**: Shifted from warm gray to cool blue-gray
+- **Border radius**: `0.5rem` changed to `0.625rem`
+- **Custom tokens**: gold, navy, gradient definitions all updated to teal/blue scheme
+- **Dark mode**: Updated to match Navigator's dark palette
 
-**3. Update `ResultsSection.tsx`**
-- Replace `handleExport` to generate HTML instead of plain text
-- Change blob type to `text/html` and filename to `board_readiness_assessment.html`
-- Rename button from "Export Results" to "Download Report"
-- Remove the emoji from the button, use a clean download icon or text
+### Files to Edit
 
-**4. Base64 logo approach**
-- Import the PNG in the report generator module
-- At build time, Vite handles image imports; for embedding in HTML we'll convert the image to a base64 data URI string using a canvas-based helper or a small inline base64 constant generated from the uploaded file
+**1. `src/index.css`**
+- Replace Google Fonts import (DM Sans + DM Serif Display instead of Playfair Display + Inter)
+- Update all CSS custom properties (light and dark) to match Board Navigator's values
+- Update utility classes (font-display, font-body) to use new font families
+- Add gradient and shadow custom properties from Navigator
+- Remove `text-gradient-gold` utility or update it to use teal
 
-### Report Structure
+**2. `tailwind.config.ts`**
+- Update `fontFamily` to DM Serif Display + DM Sans
+- Add `gold.muted`, `slate`, and `cream` color tokens from Navigator
+- Remove `level` colors (keep them -- they're used in the assessment) or retain as-is since Navigator doesn't define them
+- Add `fade-in` keyframe and animation from Navigator
 
-```text
-+------------------------------------------+
-|  [Logo]   BOARD MEMBER MATURITY          |  <- Header
-+------------------------------------------+
-|  Overall Maturity: Level X - Name        |
-|  Score: XX/YY (ZZ.Z%)                   |
-|  Description tag                         |
-+------------------------------------------+
-|  Dimension Scores Table                  |
-+------------------------------------------+
-|  High Priority Recommendations           |
-|    [Keyword] actions + examples          |
-|  Medium Priority Recommendations         |
-|    [Keyword] actions + examples          |
-+------------------------------------------+
-|  [Logo]                                  |  <- Footer
-|  Joris@deltabase.be / +32494257825      |
-+------------------------------------------+
-```
+**3. `src/utils/generateHtmlReport.ts`**
+- Update inline CSS colors in the HTML report to match the new palette:
+  - Header/footer background: steel blue (`#1e5a96` area) instead of navy (`#1a2456`)
+  - Accent/highlight color: teal (`#008b6e`) instead of gold (`#b8963e`)
+  - Font family: DM Sans instead of Segoe UI
 
+### What Stays the Same
+- All component logic, structure, and layout unchanged
+- Level colors (1-5) retained for maturity indicators since they serve a distinct functional purpose
+- All Radix UI components and their styling tokens remain compatible
