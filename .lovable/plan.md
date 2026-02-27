@@ -1,28 +1,64 @@
+## Restructure Results into Tabbed Layout
+
+### What Changes
+
+Replace the current single-scroll `ResultsSection` with a same Architecture as Project Board Navigator & layout:
+
+**Top: Stage Hero Section** (always visible above tabs)
+
+- Title: "Your Results"
+- Overall score displayed as: "Overall Score: 2.8/5 -- Band: Early Leverage Zone" (computed from overallPct mapped to band names)
+- "Where do you need to grow?" heading
+- Highlight the titles of High Priority gaps in bold/red
+- Coaching message: "You'll get more value by strengthening your governance capabilities. Focus on [high priority gap titles]. Once you've got those solid, your board support will have much more leverage."
+
+**3 Clickable Tab Buttons**: Overview | Priority Areas | Detailed Report
+
+---
+
+### Tab 1: Overview
+
+- Spider/radar chart (MaturityRadarChart)
+- One focus area callout (the lowest-scoring dimension)
+- AI-Powered Recommendations section with clickable keyword chips (high priority only, collapsed by default)
+
+### Tab 2: Priority Areas
+
+- Spider/radar chart
+- Priority Focus Areas block (top 2 lowest dimensions with percentages)
+- One AI-Powered Recommendation (first high-priority keyword, expanded)
+
+### Tab 3: Detailed Report
+
+- Spider/radar chart
+- Full dimension scores table
+- All AI-Powered Recommendations (high + medium priority keywords, all highlighted/expandable)
+- Download Report button
+
+---
+
+### Technical Details
+
+**Files to edit:**
 
 
-## Changes
+| Action  | File                                                                                                    |
+| ------- | ------------------------------------------------------------------------------------------------------- |
+| Rewrite | `src/components/ResultsSection.tsx` -- replace with Stage hero + Tabs layout using Radix Tabs component |
 
-### 1. Landing Page -- Remove logo, white background
-**File:** `src/pages/Landing.tsx`
-- Remove the `<img>` tag showing the Joris logo
-- The page already uses `bg-background` which is white, so no background change needed
 
-### 2. Assessment Header -- Remove logo
-**File:** `src/pages/Assessment.tsx`
-- Remove the `<img>` tag from the header (keep the title text and sign-out button)
+**Band mapping** (new helper based on overallPct):
 
-### 3. Add SVG Spider Chart to Downloadable Report
-**File:** `src/utils/generateHtmlReport.ts`
+- 0-20%: "Foundation Zone"
+- 21-40%: "Early Leverage Zone"  
+- 41-60%: "Growth Zone"
+- 61-80%: "Momentum Zone"
+- 81-100%: "Mastery Zone"
 
-The current HTML report has no chart. We'll generate an inline SVG radar/spider chart using the dimension data, placed between the scores table and the recommendations section.
+**Implementation approach:**
 
-The SVG will be built with pure math (no library needed since it's a static HTML file):
-- A hexagonal polar grid with concentric rings at 20%, 40%, 60%, 80%, 100%
-- Axis labels for each dimension name
-- A filled polygon representing the dimension scores
-- Styled to match the report's blue/teal color scheme
-
-**Technical approach:**
-- Add a helper function `generateRadarSvg(dims)` that computes polygon points for N dimensions on a circle and returns an SVG string
-- Insert the SVG into the HTML report template after the dimension table
-
+- Use the existing `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent` from `src/components/ui/tabs.tsx`
+- Keep all existing sub-components (MaturityRadarChart, KeywordDetail, KeywordChip) as-is
+- The Stage hero section sits outside the tabs, always visible
+- Each tab renders its specific subset of the existing content
+- The existing `handleExport` and download button moves into the Detailed Report tab only
