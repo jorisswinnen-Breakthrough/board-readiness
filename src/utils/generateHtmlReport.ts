@@ -34,8 +34,8 @@ export async function generateHtmlReport(
     recs
       .map(
         (rec) => `
-      <div style="margin-bottom:18px;padding:14px 18px;background:#f8f9fb;border-radius:8px;border-left:4px solid ${rec.priority === "high" ? "#cc3333" : "#b8963e"};">
-        <div style="font-weight:700;font-size:15px;color:#1a2456;margin-bottom:2px;">${rec.keyword}</div>
+      <div style="margin-bottom:18px;padding:14px 18px;background:#f4f8fb;border-radius:8px;border-left:4px solid ${rec.priority === "high" ? "#cc3333" : "#008b6e"};">
+        <div style="font-weight:700;font-size:15px;color:#1e5a96;margin-bottom:2px;">${rec.keyword}</div>
         <div style="font-size:12px;color:#666;margin-bottom:10px;">${rec.dimensionLabel} · Level ${rec.currentLevel} → ${rec.targetLevel}</div>
         ${rec.actions
           .map(
@@ -57,23 +57,23 @@ export async function generateHtmlReport(
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Board Member Maturity Report</title>
 <style>
-  body { font-family: 'Segoe UI', Arial, sans-serif; margin:0; padding:0; color:#222; background:#fff; }
-  .header { background:#1a2456; padding:28px 40px; display:flex; align-items:center; gap:24px; }
+  body { font-family: 'DM Sans', 'Segoe UI', Arial, sans-serif; margin:0; padding:0; color:#222; background:#fff; }
+  .header { background:#1e5a96; padding:28px 40px; display:flex; align-items:center; gap:24px; }
   .header img { height:54px; }
   .header h1 { color:#fff; font-size:22px; letter-spacing:6px; text-transform:uppercase; margin:0; font-weight:700; }
   .content { max-width:780px; margin:0 auto; padding:32px 40px; }
-  .overall { background:#f0f2f8; border-radius:10px; padding:20px 24px; margin-bottom:28px; }
-  .overall h2 { margin:0 0 6px; font-size:20px; color:#1a2456; }
+  .overall { background:#edf4f9; border-radius:10px; padding:20px 24px; margin-bottom:28px; }
+  .overall h2 { margin:0 0 6px; font-size:20px; color:#1e5a96; }
   .level-badge { display:inline-block; padding:4px 14px; border-radius:20px; color:#fff; font-size:13px; font-weight:700; }
   table { width:100%; border-collapse:collapse; margin-bottom:28px; font-size:13px; }
-  th { background:#1a2456; color:#fff; text-align:left; padding:10px 14px; font-weight:600; }
-  td { padding:8px 14px; border-bottom:1px solid #e0e3ea; }
-  tr:nth-child(even) { background:#f8f9fb; }
-  .section-title { font-size:16px; font-weight:700; color:#1a2456; margin:28px 0 12px; border-bottom:2px solid #b8963e; padding-bottom:6px; }
-  .footer { background:#1a2456; padding:24px 40px; text-align:center; margin-top:40px; }
+  th { background:#1e5a96; color:#fff; text-align:left; padding:10px 14px; font-weight:600; }
+  td { padding:8px 14px; border-bottom:1px solid #d4e2ed; }
+  tr:nth-child(even) { background:#f4f8fb; }
+  .section-title { font-size:16px; font-weight:700; color:#1e5a96; margin:28px 0 12px; border-bottom:2px solid #008b6e; padding-bottom:6px; }
+  .footer { background:#1e5a96; padding:24px 40px; text-align:center; margin-top:40px; }
   .footer img { height:40px; margin-bottom:10px; }
   .footer p { color:#ccc; font-size:13px; letter-spacing:2px; margin:0; font-weight:700; }
-  .footer a { color:#b8963e; text-decoration:none; font-weight:700; }
+  .footer a { color:#008b6e; text-decoration:none; font-weight:700; }
 </style>
 </head>
 <body>
@@ -114,7 +114,7 @@ export async function generateHtmlReport(
 
   ${highPriority.length > 0 ? `<div class="section-title" style="color:#cc3333;border-color:#cc3333;">High Priority — Current Gaps</div>${renderRecs(highPriority)}` : ""}
 
-  ${mediumPriority.length > 0 ? `<div class="section-title" style="color:#b8963e;">Medium Priority — In Progress</div>${renderRecs(mediumPriority)}` : ""}
+  ${mediumPriority.length > 0 ? `<div class="section-title" style="color:#008b6e;">Medium Priority — In Progress</div>${renderRecs(mediumPriority)}` : ""}
 </div>
 
 <div class="footer">
